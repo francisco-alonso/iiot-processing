@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.23
+
+    - name: Install dependencies
+      run: go mod tidy
+
+    - name: Build
+      run: go build -o build/app ./cmd/main.go
+
+    - name: Run tests with coverage
+      run: go test -coverprofile=coverage.out ./...
+
+    - name: Generate coverage summary
+      run: go tool cover -func=coverage.out | tee coverage-summary.txt
+      
