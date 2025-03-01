@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  labels:
+    app: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      serviceAccountName: gke-processor
+      containers:
+        - name: worker
+          image: gcr.io/iiot-processing/worker:latest
+          env:
+            - name: PROJECT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: worker-config
+                  key: PROJECT_ID
+            - name: SUBSCRIPTION_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: worker-config
+                  key: SUBSCRIPTION_ID
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: "/etc/keys/key.json"
+          volumeMounts:
+            - name: google-cloud-key
+              mountPath: "/etc/keys"
+              readOnly: true
+      volumes:
+        - name: google-cloud-key
+          secret:
+            secretName: pubsub-secret
